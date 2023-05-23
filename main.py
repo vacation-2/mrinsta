@@ -55,8 +55,8 @@ class MrInsta:
 
                 total_coin = self.get_earned_coin_details(
                     access_token, insta_session)
-                print(f'\t\t[+] Total coin: {total_coin}')
                 if total_coin > 0:
+                    print(f'\t\t[+] Added: {total_coin // 10} followers')
                     self.redeem_earned_coin(
                         total_coin, access_token, insta_session)
 
