@@ -28,7 +28,6 @@ class CreateAccounts:
             if not _:
                 print('\t[-] No OTP found')
                 print(f'\t[-] Last account: {self.ACCOUNTS[self.INDEX]}')
-                self.save_emails()
                 self.WORKED_ACCOUNTS = []
                 continue
             _, data = self.verify_email(email, otp)
@@ -91,7 +90,7 @@ class CreateAccounts:
                 pass
         return False, ''
 
-    def register(self, email: str) -> typing.Tuple[bool, str, str]:
+    def register(self, email: str) -> typing.Union[bool, str, str]:
         resp = post(f'{BASE_URL}/register', json={
             "email": email,
             "password": PASSWORD,
@@ -109,26 +108,13 @@ class CreateAccounts:
             return resp['success'], resp['message']
         return False, resp
 
-    def generate_new_email(self):
+    def generate_new_email(self) -> typing.Union[bool, str]:
         tree = html.fromstring(get(f'{self.EMAIL_URL}').content)
         mail = tree.xpath("//span[@id='email_ch_text']")[0].text_content()
         print(f'[+] Email: {mail}')
         if '@' in mail:
             return True, mail
         return False, ''
-
-    def save_emails(self):
-        print(f'[+] New accounts: {len(self.WORKED_ACCOUNTS)}')
-        print('[+] Exiting')
-        if len(self.WORKED_ACCOUNTS) > 0:
-            with open('accounts.json', 'r') as f:
-                accounts = load(f)
-            for _ in self.WORKED_ACCOUNTS:
-                accounts.append({
-                    'email': _
-                })
-            with open('accounts.json', 'w') as f:
-                dump(accounts, f)
 
     def send_verify_email(self, access_token: str, email: str):
         resp = post(f"{BASE_URL}/sendVerifyEmail", headers={
@@ -138,9 +124,6 @@ class CreateAccounts:
         }).json()
         return resp['success']
 
-    def signal_handler(self, sig, frame) -> None:
-        self.save_emails()
-        exit(0)
 
 
 if __name__ == '__main__':

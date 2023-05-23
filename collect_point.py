@@ -1,38 +1,28 @@
 from requests import get, post
-from os import getenv, path
-from json import load, dump
+from os import path
+from json import load
 from time import sleep
-from lxml import html
 import typing
-from concurrent.futures import ThreadPoolExecutor
 
 PASSWORD = 'p4$$w0rD!'
 BASE_URL = 'https://api.mrinsta.com/api'
 DEBUG = False
 
+
 class CollectPoint:
     def __init__(self) -> None:
-        self.WORKED_ACCOUNTS = []
-        self.read_accounts()
-        self.INDEX = 0
-        self.process_accounts()
-
-    def read_accounts(self):
-        self.ACCOUNTS = load(
-            open(f"{path.join(path.dirname(__file__), 'accounts.json')}", 'r'))[::-1]
-
-    def process_accounts(self):
-        for account in self.ACCOUNTS:
+        for account in load(
+                open(f"{path.join(path.dirname(__file__), 'accounts.json')}", 'r')):
             _, access_token, insta_session = self.login(account)
             if not _:
                 print(f"\t[-] Login failed: {account['email']}")
-                return
+                continue
             print(f'[+] Logged in: {account["email"]}')
 
             connected_accounts = self.get_connected_accounts(
                 access_token, insta_session)
             usernames = [_['instagram_data']['username']
-                        for _ in connected_accounts['connected_account']]
+                         for _ in connected_accounts['connected_account']]
             usernames.append(
                 connected_accounts['primary_account']['instagram_data']['username'])
             for username in usernames:
@@ -48,10 +38,11 @@ class CollectPoint:
                     'data']['token']
                 is_free_followers_plan_active, is_free_post_like_active = self.active_subscription_setup(
                     access_token, insta_session)
-                _, message = self.activate_follow_user(access_token, insta_session)
+                _, message = self.activate_follow_user(
+                    access_token, insta_session)
                 if not is_free_followers_plan_active and not 'activated' in message:
                     self.follow_user(message['user']['id'],
-                                    access_token, insta_session)
+                                     access_token, insta_session)
                 else:
                     print(f'\t\t[-] Follow plan not active')
                 if not is_free_post_like_active:

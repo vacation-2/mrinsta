@@ -1,8 +1,7 @@
 from requests import get, post
-from os import getenv, path
-from json import load, dump
+from os import path
+from json import load
 from time import sleep
-from dotenv import load_dotenv
 from lxml import html
 import typing
 
@@ -16,20 +15,13 @@ PASSWORD = 'p4$$w0rD!'
 
 class RedeemCoin:
     def __init__(self) -> None:
-        self.read_accounts()
         print(f'[+] Target: {TARGET}')
-        self.process_accounts()
-
-    def read_accounts(self):
-        self.ACCOUNTS = load(
-            open(f"{path.join(path.dirname(__file__), 'accounts.json')}", 'r'))[::-1]
-
-    def process_accounts(self):
-        for account in self.ACCOUNTS:
+        for account in load(
+            open(f"{path.join(path.dirname(__file__), 'accounts.json')}", 'r'))[::-1]:
             _, access_token, insta_session = self.login(account)
             if not _:
                 print(f"\t[-] Login failed: {account['email']}")
-                return
+                continue
             print(f'[+] Logged in: {account["email"]}')
             connected_accounts = self.get_connected_accounts(
                 access_token, insta_session)
@@ -41,8 +33,8 @@ class RedeemCoin:
                 print(f'\t[*] Username: {username}')
                 total_coin = self.get_earned_coin_details(
                     access_token, insta_session)
+                print(f'\t\t[+] Total coin: {total_coin}')
                 if total_coin > 0:
-                    print(f'\t\t[+] Earned: {total_coin // 10} followers')
                     self.redeem_earned_coin(
                         total_coin, access_token, insta_session)
             self.log_out(access_token, insta_session)
