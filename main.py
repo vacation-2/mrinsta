@@ -1,6 +1,7 @@
 from requests import get, post
 from os import path
 from json import load
+import random
 from time import sleep
 import typing
 
@@ -11,11 +12,14 @@ PASSWORD = 'p4$$w0rD!'
 # ==============================================
 BASE_URL = 'https://api.mrinsta.com/api'
 
+
 class MrInsta:
     def __init__(self) -> None:
         print(f'[+] Target: {TARGET}')
-        for account in load(
-                open(f"{path.join(path.dirname(__file__), 'accounts.json')}", 'r')):
+        accounts = load(
+            open(f"{path.join(path.dirname(__file__), 'accounts.json')}", 'r'))
+        random.shuffle(accounts)
+        for account in accounts:
             _, access_token, insta_session = self.login(account)
             if not _:
                 print(f"\t[-] Login failed: {account['email']}")
@@ -65,16 +69,17 @@ class MrInsta:
     def get_earned_coin_details(self, access_token: str, insta_session: str) -> int:
         try:
             resp = get(
-            f'{BASE_URL}/getEarnedCoinDetails', headers={
-                "Authorization": f"Bearer {access_token}"
-            }, cookies={
-                "mrinsta_session": insta_session
-            }).json()
+                f'{BASE_URL}/getEarnedCoinDetails', headers={
+                    "Authorization": f"Bearer {access_token}"
+                }, cookies={
+                    "mrinsta_session": insta_session
+                }).json()
             return int(resp['data']['total_earn_coin'])
         except Exception as e:
             print(f'\t\t[-] Error@get_earned_coin_details: {e}')
             print(f'\t\t[-] {resp}')
-            if DEBUG: input()
+            if DEBUG:
+                input()
             return 0
 
     def redeem_earned_coin(self, total_coin: int, access_token: str, insta_session: str) -> None:
